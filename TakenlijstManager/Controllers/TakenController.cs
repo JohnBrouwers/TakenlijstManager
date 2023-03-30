@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TakenlijstManager.Data;
 using TakenlijstManager.Data.Entities;
+using TakenlijstManager.Models;
 
 namespace TakenlijstManager.Controllers
 {
@@ -48,7 +49,16 @@ namespace TakenlijstManager.Controllers
         // GET: Taken/Create
         public IActionResult Create()
         {
-            return View();
+            //ViewData["Statussen"]= new SelectList(_context.Statussen.Select(s => new {Id = s.Id, Name = s.Name }).ToList(), "Id", "Name");
+
+            var model = new CreateTaakViewModel();
+            model.Statussen = new SelectList(_context.Statussen.Select(s => new
+            {
+                Id = s.Id,
+                Name = s.Name
+            }).ToList(), "Id", "Name");
+
+            return View(model);
         }
 
         // POST: Taken/Create
@@ -56,15 +66,17 @@ namespace TakenlijstManager.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Naam,Omvang,Prioriteit")] Taak taak)
+        public async Task<IActionResult> Create([Bind("Id,Naam,Omvang,Prioriteit,StatusId")] CreateTaakViewModel model)
         {
             if (ModelState.IsValid)
             {
+                var taak = new Taak() { Naam = model.Naam, Omvang = model.Omvang, Prioriteit = model.Prioriteit, StatusId = model.StatusId };
+
                 _context.Add(taak);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(taak);
+            return View(model);
         }
 
         // GET: Taken/Edit/5
