@@ -9,6 +9,9 @@ using TakenlijstManager.Data;
 using TakenlijstManager.Data.Entities;
 using TakenlijstManager.Models;
 
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace TakenlijstManager.Controllers
 {
     public class TakenController : Controller
@@ -23,10 +26,35 @@ namespace TakenlijstManager.Controllers
         // GET: Taken
         public async Task<IActionResult> Index(string zoekwaarde = "")
         {
-              return _context.Taken != null ? 
-                          View(await _context.Taken.ToListAsync()) :
+
+            var sessionZoekwaardesAsString = this.HttpContext.Session.GetString("zoekwaardes");
+
+            if (sessionZoekwaardesAsString == null)
+            {
+                var zoekwaardes = new string[2];
+                zoekwaardes[0] = "huiswerk";
+                zoekwaardes[1] = "toets";
+                this.HttpContext.Session.SetString("zoekwaardes", JsonSerializer.Serialize(zoekwaardes));
+            }
+            else 
+            {
+                var zoekwaardesArray = JsonSerializer.Deserialize<string[]>(sessionZoekwaardesAsString);            
+            }
+
+
+            if (zoekwaarde.Length>0)
+            {
+
+                return _context.Taken != null ?
+                            View(await _context.Taken.Include(t => t.Status).Where(t => t.Naam.Contains(zoekwaarde)).ToListAsync()) :
+                            Problem("Entity set 'TakenManagerDbContext.Taken'  is null.");
+            }
+            return _context.Taken != null ? 
+                          View(await _context.Taken.Include(t => t.Status).ToListAsync()) :
                           Problem("Entity set 'TakenManagerDbContext.Taken'  is null.");
         }
+
+
 
         // GET: Taken/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -51,6 +79,8 @@ namespace TakenlijstManager.Controllers
         {
             //ViewData["Statussen"]= new SelectList(_context.Statussen.Select(s => new {Id = s.Id, Name = s.Name }).ToList(), "Id", "Name");
 
+            this.HttpContext.Session.SetString("time", DateTime.Now.ToString());
+
             var model = new CreateTaakViewModel();
             model.Statussen = new SelectList(_context.Statussen.Select(s => new
             {
@@ -68,6 +98,10 @@ namespace TakenlijstManager.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Naam,Omvang,Prioriteit,StatusId")] CreateTaakViewModel model)
         {
+            //this.HttpContext.Session.SetString("time", DateTime.Now.ToString());
+            var time = this.HttpContext.Session.GetString("time");
+            
+
             if (ModelState.IsValid)
             {
                 var taak = new Taak() { Naam = model.Naam, Omvang = model.Omvang, Prioriteit = model.Prioriteit, StatusId = model.StatusId };

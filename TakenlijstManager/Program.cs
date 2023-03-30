@@ -11,6 +11,17 @@ builder.Services.AddDbContext<TakenManagerDbContext>(options =>
     options.UseSqlServer(connectionstring);
 });
 
+builder.Services.AddCookiePolicy(options => {
+    //options.Expires = TimeSpan.FromMinutes(3);
+    //options.Cookie.SameSite = SameSiteMode.Strict;
+    //options.Cookie.HttpOnly = true;
+    //options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
+builder.Services.AddSession(options => { 
+    options.IdleTimeout= TimeSpan.FromMinutes(10);
+    options.Cookie.Name= "MijnKoekie";
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -30,6 +41,8 @@ else if (app.Environment.IsDevelopment()) {
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.UseSession();
 
 app.UseRouting();
 
