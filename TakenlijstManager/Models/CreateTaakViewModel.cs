@@ -24,6 +24,6 @@ namespace TakenlijstManager.Models
         [DisplayName("Status")]
         public int? StatusId { get; set; }
 
-        public SelectList Statussen { get; set; }
+        public SelectList? Statussen { get; set; }
     }
 }
