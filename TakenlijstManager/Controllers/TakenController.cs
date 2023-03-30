@@ -21,7 +21,7 @@ namespace TakenlijstManager.Controllers
         }
 
         // GET: Taken
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string zoekwaarde = "")
         {
               return _context.Taken != null ? 
                           View(await _context.Taken.ToListAsync()) :
